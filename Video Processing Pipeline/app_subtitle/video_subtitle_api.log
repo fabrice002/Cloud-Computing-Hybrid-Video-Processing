@@ -1,0 +1,70 @@
+2025-12-05 02:26:55,377 - utils.logging_config - INFO - Starting Video Subtitle Generator API v1.0.0
+2025-12-05 02:26:55,378 - utils.logging_config - INFO - Output directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\output_videos
+2025-12-05 02:26:55,379 - utils.logging_config - INFO - Temp directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp
+2025-12-05 02:26:55,379 - utils.logging_config - INFO - Video processor initialized
+2025-12-05 02:29:00,012 - utils.logging_config - INFO - Video uploaded: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel).mp4
+2025-12-05 02:29:00,014 - services.video_processor - INFO - Step 1: Extracting audio
+2025-12-05 02:29:00,015 - services.ffmpeg_service - INFO - Extracting audio from: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel).mp4
+2025-12-05 02:29:00,646 - services.ffmpeg_service - INFO - Audio extracted to: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel)_audio.wav
+2025-12-05 02:29:00,647 - services.video_processor - INFO - Step 2: Generating subtitles
+2025-12-05 02:29:00,647 - services.subtitle_service - INFO - Starting transcription with model 'small'
+2025-12-05 02:29:00,648 - services.subtitle_service - INFO - Loading Whisper model: small
+2025-12-05 02:38:21,825 - services.subtitle_service - INFO - Whisper model 'small' loaded successfully
+2025-12-05 02:45:17,596 - services.subtitle_service - INFO - Subtitles generated: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel)_audio_subtitles.srt
+2025-12-05 02:45:17,634 - services.video_processor - INFO - Step 3: Embedding subtitles
+2025-12-05 02:45:17,637 - services.ffmpeg_service - INFO - Embedding subtitles into video
+2025-12-05 02:47:18,074 - services.ffmpeg_service - INFO - Video with subtitles created: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\output_videos\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel)_with_subtitles.mp4
+2025-12-05 02:47:18,104 - services.video_processor - INFO - Processing completed in 1098.1 seconds
+2025-12-05 02:47:18,105 - services.video_processor - INFO - Output video: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\output_videos\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel)_with_subtitles.mp4
+2025-12-05 02:47:18,111 - services.video_processor - INFO - Subtitle file: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251205_022859_cb4e4068_GIMS - APPELLE TA COPINE (Clip officiel)_audio_subtitles.srt
+2025-12-05 02:47:18,513 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-12-05 12:58:12,142 - utils.logging_config - INFO - Starting Video Subtitle Generator API v1.0.0
+2025-12-05 12:58:12,145 - utils.logging_config - INFO - Output directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\output_videos
+2025-12-05 12:58:12,147 - utils.logging_config - INFO - Temp directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp
+2025-12-05 12:58:12,149 - utils.logging_config - INFO - Video processor initialized
+2025-12-06 13:54:23,559 - utils.logging_config - INFO - Shutting down application
+2025-12-06 13:54:23,573 - services.video_processor - INFO - Cleaning up video processor resources
+2025-12-06 13:54:23,582 - services.subtitle_service - INFO - Cleaning up Whisper models
+2025-12-08 16:34:29,110 - utils.logging_config - INFO - Starting Video Subtitle Generator API v1.0.0
+2025-12-08 16:34:29,116 - utils.logging_config - INFO - Output directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\output_videos
+2025-12-08 16:34:29,116 - utils.logging_config - INFO - Temp directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp
+2025-12-08 16:34:29,119 - utils.logging_config - INFO - Video processor initialized
+2025-12-08 16:35:06,047 - utils.logging_config - INFO - Video uploaded: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_163505_e79c0b0d_Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 16:35:06,048 - services.video_processor - INFO - Step 1: Extracting audio
+2025-12-08 16:35:06,050 - services.ffmpeg_service - INFO - Extracting audio from: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_163505_e79c0b0d_Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 16:35:07,190 - services.ffmpeg_service - INFO - Audio extracted to: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_163505_e79c0b0d_Sofia Carson - Come Back Home (From _Purple Hearts_)_audio.wav
+2025-12-08 16:35:07,191 - services.video_processor - INFO - Step 2: Generating subtitles
+2025-12-08 16:35:07,192 - services.subtitle_service - INFO - Starting transcription with model 'base'
+2025-12-08 16:35:07,192 - services.subtitle_service - INFO - Loading Whisper model: base
+2025-12-08 16:35:10,144 - services.subtitle_service - INFO - Whisper model 'base' loaded successfully
+2025-12-08 16:37:37,169 - services.subtitle_service - INFO - Subtitles generated: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_163505_e79c0b0d_Sofia Carson - Come Back Home (From _Purple Hearts_)_audio_subtitles.srt
+2025-12-08 16:37:37,180 - services.video_processor - INFO - Processing completed in 151.1 seconds
+2025-12-08 16:37:37,180 - services.video_processor - INFO - Subtitle file: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_163505_e79c0b0d_Sofia Carson - Come Back Home (From _Purple Hearts_)_audio_subtitles.srt
+2025-12-08 16:55:29,939 - utils.logging_config - INFO - Shutting down application
+2025-12-08 16:55:29,949 - services.video_processor - INFO - Cleaning up video processor resources
+2025-12-08 16:55:29,952 - services.subtitle_service - INFO - Cleaning up Whisper models
+2025-12-08 16:55:44,636 - utils.logging_config - INFO - Starting Video Subtitle Generator API v1.0.0
+2025-12-08 16:55:44,638 - utils.logging_config - INFO - Output directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\output_videos
+2025-12-08 16:55:44,638 - utils.logging_config - INFO - Temp directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp
+2025-12-08 16:55:44,639 - utils.logging_config - INFO - Video processor initialized
+2025-12-08 16:56:07,282 - utils.logging_config - INFO - Video uploaded: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_165607_c210a8f9_Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 16:56:07,284 - services.video_processor - INFO - Step 1: Extracting audio
+2025-12-08 16:56:07,284 - services.ffmpeg_service - INFO - Extracting audio from: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_165607_c210a8f9_Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 16:56:08,848 - services.ffmpeg_service - INFO - Audio extracted to: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_165607_c210a8f9_Sofia Carson - Come Back Home (From _Purple Hearts_)_audio.wav
+2025-12-08 16:56:08,849 - services.video_processor - INFO - Step 2: Generating subtitles
+2025-12-08 16:56:08,850 - services.subtitle_service - INFO - Starting transcription with model 'base'
+2025-12-08 16:56:08,851 - services.subtitle_service - INFO - Loading Whisper model: base
+2025-12-08 16:56:12,762 - services.subtitle_service - INFO - Whisper model 'base' loaded successfully
+2025-12-08 16:58:11,666 - services.subtitle_service - INFO - Subtitles generated: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_165607_c210a8f9_Sofia Carson - Come Back Home (From _Purple Hearts_)_audio_subtitles.srt
+2025-12-08 16:58:11,668 - services.video_processor - INFO - Processing completed in 124.4 seconds
+2025-12-08 16:58:11,669 - services.video_processor - INFO - Subtitle file: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_subtitle\temp\20251208_165607_c210a8f9_Sofia Carson - Come Back Home (From _Purple Hearts_)_audio_subtitles.srt
+2025-12-08 17:08:17,444 - utils.logging_config - INFO - Shutting down application
+2025-12-08 17:08:17,453 - services.video_processor - INFO - Cleaning up video processor resources
+2025-12-08 17:08:17,459 - services.subtitle_service - INFO - Cleaning up Whisper models

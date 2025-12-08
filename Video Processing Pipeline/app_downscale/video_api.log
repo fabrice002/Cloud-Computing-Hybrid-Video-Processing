@@ -1,0 +1,71 @@
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - Video Compression API v1.1.0 started
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - Storage directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_downscale\video_storage
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - Available endpoints:
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - - POST /api/compress/url - Compress from URL
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - - POST /api/compress/local - Compress local file
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - - POST /api/compress/upload - Upload and compress
+2025-12-08 13:43:33,585 - utils.logging_config - INFO - - GET /api/status/{job_id} - Check job status
+2025-12-08 13:43:33,591 - utils.logging_config - INFO - - GET /api/download/{job_id} - Download result
+2025-12-08 13:44:58,883 - services.video_downscaler - INFO - Copying local video from D:/Music/Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 13:44:58,963 - services.video_downscaler - INFO - Local video copied: video_storage\downloads\71d8e5ff-28fc-42ab-b658-5b031ca9a4aa_Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 13:44:59,980 - services.video_downscaler - INFO - Compressing 71d8e5ff-28fc-42ab-b658-5b031ca9a4aa_Sofia Carson - Come Back Home (From _Purple Hearts_).mp4 -> 360p (CRF=28)
+2025-12-08 13:49:07,968 - services.video_downscaler - INFO - Compression completed: video_storage\compressed\360p\71d8e5ff-28fc-42ab-b658-5b031ca9a4aa_string_20251208_134459.mp4
+2025-12-08 13:49:07,974 - services.video_downscaler - INFO - Compression ratio: 56.3% | Time: 249.0s
+2025-12-08 13:56:00,600 - services.video_downscaler - INFO - Saving uploaded video: Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 13:56:00,685 - services.video_downscaler - INFO - Uploaded video saved: video_storage\uploads\b543be11-c081-475a-9659-6429b426bf58_Sofia Carson - Come Back Home From _Purple Hearts_.mp4
+2025-12-08 13:56:02,066 - services.video_downscaler - INFO - Compressing b543be11-c081-475a-9659-6429b426bf58_Sofia Carson - Come Back Home From _Purple Hearts_.mp4 -> 360p (CRF=28)
+2025-12-08 14:00:58,921 - services.video_downscaler - INFO - Compression completed: video_storage\compressed\360p\b543be11-c081-475a-9659-6429b426bf58_string_20251208_135602.mp4
+2025-12-08 14:00:58,934 - services.video_downscaler - INFO - Compression ratio: 56.3% | Time: 298.2s
+2025-12-08 14:15:17,702 - utils.logging_config - INFO - Video Compression API shutting down
+2025-12-08 14:15:23,810 - utils.logging_config - INFO - Video Compression API v1.1.0 started
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - Storage directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_downscale\video_storage
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - Available endpoints:
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - - POST /api/compress/url - Compress from URL
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - - POST /api/compress/local - Compress local file
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - - POST /api/compress/upload - Upload and compress
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - - GET /api/status/{job_id} - Check job status
+2025-12-08 14:15:23,816 - utils.logging_config - INFO - - GET /api/download/{job_id} - Download result
+2025-12-08 14:22:51,971 - utils.logging_config - INFO - Video Compression API shutting down
+2025-12-08 14:22:59,810 - utils.logging_config - INFO - Video Compression API v1.1.0 started
+2025-12-08 14:22:59,812 - utils.logging_config - INFO - Storage directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_downscale\video_storage
+2025-12-08 14:22:59,812 - utils.logging_config - INFO - Available endpoints:
+2025-12-08 14:22:59,812 - utils.logging_config - INFO - - POST /api/compress/url - Compress from URL
+2025-12-08 14:22:59,815 - utils.logging_config - INFO - - POST /api/compress/local - Compress local file
+2025-12-08 14:22:59,817 - utils.logging_config - INFO - - POST /api/compress/upload - Upload and compress
+2025-12-08 14:22:59,818 - utils.logging_config - INFO - - GET /api/status/{job_id} - Check job status
+2025-12-08 14:22:59,819 - utils.logging_config - INFO - - GET /api/download/{job_id} - Download result
+2025-12-08 14:23:21,840 - services.video_downscaler - INFO - Saving uploaded video: Sofia Carson - Come Back Home (From _Purple Hearts_).mp4
+2025-12-08 14:23:21,899 - services.video_downscaler - INFO - Uploaded video saved: video_storage\uploads\f5ca0878-f3a6-4345-a672-9f20adc2a89a_Sofia Carson - Come Back Home From _Purple Hearts_.mp4
+2025-12-08 14:23:23,576 - services.video_downscaler - INFO - Compressing f5ca0878-f3a6-4345-a672-9f20adc2a89a_Sofia Carson - Come Back Home From _Purple Hearts_.mp4 -> 360p (CRF=28)
+2025-12-08 14:27:20,971 - services.video_downscaler - INFO - Compression completed: video_storage\compressed\360p\f5ca0878-f3a6-4345-a672-9f20adc2a89a_string_20251208_142323.mp4
+2025-12-08 14:27:20,976 - services.video_downscaler - INFO - Compression ratio: 56.3% | Time: 239.0s
+2025-12-08 14:38:05,582 - utils.logging_config - INFO - Video Compression API shutting down
+2025-12-08 14:38:12,206 - utils.logging_config - INFO - Video Compression API v1.1.0 started
+2025-12-08 14:38:12,207 - utils.logging_config - INFO - Storage directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_downscale\video_storage
+2025-12-08 14:38:12,208 - utils.logging_config - INFO - Available endpoints:
+2025-12-08 14:38:12,208 - utils.logging_config - INFO - - POST /api/compress/url - Compress from URL
+2025-12-08 14:38:12,208 - utils.logging_config - INFO - - POST /api/compress/local - Compress local file
+2025-12-08 14:38:12,209 - utils.logging_config - INFO - - POST /api/compress/upload - Upload and compress
+2025-12-08 14:38:12,209 - utils.logging_config - INFO - - GET /api/status/{job_id} - Check job status
+2025-12-08 14:38:12,209 - utils.logging_config - INFO - - GET /api/download/{job_id} - Download result
+2025-12-08 14:38:57,754 - services.video_downscaler - INFO - Saving uploaded video: Keblack Ft. SDM - Boulot (Clip Officiel).mp4
+2025-12-08 14:38:57,807 - services.video_downscaler - INFO - Uploaded video saved: video_storage\uploads\70116cd8-eeea-43cc-a541-d7c07a1cd7bf_Keblack Ft. SDM - Boulot Clip Officiel.mp4
+2025-12-08 14:38:59,588 - services.video_downscaler - INFO - Compressing 70116cd8-eeea-43cc-a541-d7c07a1cd7bf_Keblack Ft. SDM - Boulot Clip Officiel.mp4 -> 360p (CRF=28)
+2025-12-08 14:41:41,625 - services.video_downscaler - INFO - Compression completed: video_storage\compressed\360p\70116cd8-eeea-43cc-a541-d7c07a1cd7bf_string_20251208_143859.mp4
+2025-12-08 14:41:41,627 - services.video_downscaler - INFO - Compression ratio: 68.6% | Time: 163.8s
+2025-12-08 15:01:16,711 - utils.logging_config - INFO - Video Compression API shutting down
+2025-12-08 15:01:22,511 - utils.logging_config - INFO - Video Compression API v1.1.0 started
+2025-12-08 15:01:22,512 - utils.logging_config - INFO - Storage directory: D:\ECOLE\ENSPY\M2 DS\Semestre 1\INF5141 - Cloud Computing\microservice_python\app_downscale\video_storage
+2025-12-08 15:01:22,521 - utils.logging_config - INFO - Available endpoints:
+2025-12-08 15:01:22,523 - utils.logging_config - INFO - - POST /api/compress/url - Compress from URL
+2025-12-08 15:01:22,523 - utils.logging_config - INFO - - POST /api/compress/local - Compress local file
+2025-12-08 15:01:22,523 - utils.logging_config - INFO - - POST /api/compress/upload - Upload and compress
+2025-12-08 15:01:22,523 - utils.logging_config - INFO - - GET /api/status/{job_id} - Check job status
+2025-12-08 15:01:22,523 - utils.logging_config - INFO - - GET /api/download/{job_id} - Download result
+2025-12-08 15:01:22,524 - utils.logging_config - INFO - - GET /video_storage/ - Access video files
+2025-12-08 15:02:08,756 - services.video_downscaler - INFO - Saving uploaded video: Keblack - Bababa (Clip Officiel).mp4
+2025-12-08 15:02:08,787 - services.video_downscaler - INFO - Uploaded video saved: video_storage\uploads\fed7dba8-9185-4dba-ad6f-043864ae21ca_Keblack - Bababa Clip Officiel.mp4
+2025-12-08 15:02:09,682 - services.video_downscaler - INFO - Compressing fed7dba8-9185-4dba-ad6f-043864ae21ca_Keblack - Bababa Clip Officiel.mp4 -> 360p (CRF=28)
+2025-12-08 15:03:41,338 - services.video_downscaler - INFO - Compression completed: video_storage\compressed\360p\fed7dba8-9185-4dba-ad6f-043864ae21ca_string_20251208_150209.mp4
+2025-12-08 15:03:41,338 - services.video_downscaler - INFO - Compression ratio: 68.8% | Time: 92.5s
+2025-12-08 15:06:49,462 - utils.logging_config - INFO - Video Compression API shutting down

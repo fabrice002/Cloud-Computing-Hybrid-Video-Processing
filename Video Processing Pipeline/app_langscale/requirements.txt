@@ -1,0 +1,27 @@
+
+- Faut ffmpeg voici le lien https://www.ffmpeg.org/download.html pour installer
+
+# FastAPI framework
+fastapi
+
+# ASGI server for running FastAPI
+uvicorn[standard]
+
+# Handling multipart/form-data (uploads)
+python-multipart
+
+# Data validation and settings
+pydantic
+
+# Speech-to-text engine (Google API wrapper)
+SpeechRecognition
+
+# HTTP client (async)
+httpx
+
+# Video processing (optional, if used)
+moviepy
+
+# Optional audio processing helper
+pydub
+
