@@ -58,21 +58,23 @@ graph TB
         B --> D[Service Détection Langue]
         B --> E[Service de Sous-titrage Automatique]
         B --> F[Service de Detection d'Animaux]
-        C --> E[(Stockage Local)]
-        D --> E
+        C --> G[(Stockage Local)]
+        D --> G
+        E --> G
+        F --> G
     end
     
     subgraph "Cloud AWS"
-        F[EC2 Instance] --> G[S3 Bucket]
-        F --> H[(Base de Données)]
-        F --> I[Service d'Agrégation]
+        H[EC2 Instance] --> I[S3 Bucket]
+        H --> J[(Base de Données)]
+        H --> K[Service d'Agrégation] 
     end
     
-    E --> F
-    I --> A
+    G --> H
+    K --> A
     
     style A fill:#ff9999
-    style F fill:#99ccff
+    style K fill:#99ccff
 ```
 
 ### **Architecture Technique**
