@@ -376,14 +376,6 @@ OUTPUT_RETENTION_HOURS=48          # Durée conservation outputs
 
 *YOLOv8n sur CPU Intel i7, 16GB RAM*
 
-## **🤝 Contribution**
-
-Les contributions sont les bienvenues ! Consultez `CONTRIBUTING.md` pour les guidelines.
-
-## **📄 Licence**
-
-Ce projet est sous licence MIT. Voir `LICENSE` pour plus de détails.
-
 ## **🔗 Liens Utiles**
 
 - [Documentation Ultralytics YOLOv8](https://docs.ultralytics.com/)
@@ -391,10 +383,5 @@ Ce projet est sous licence MIT. Voir `LICENSE` pour plus de détails.
 - [OpenCV Documentation](https://docs.opencv.org/)
 - [AWS EC2 Guide](https://aws.amazon.com/ec2/)
 
-## **📧 Support**
 
-Pour toute question ou problème :
-- Ouvrir une issue sur GitHub
-- Email : support@vidp.example.com
-- Discord : [VidP Community](https://discord.gg/vidp)
 
