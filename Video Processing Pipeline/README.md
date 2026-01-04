@@ -83,7 +83,7 @@ graph TB
     
     style A fill:#ff9999
     style K fill:#99ccff
-    style F fill:#ffcc99
+    style F fill:#ffccff
 ```
 
 ### **Architecture Technique**
