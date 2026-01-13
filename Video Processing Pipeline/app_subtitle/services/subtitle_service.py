@@ -1,3 +1,5 @@
+# app_subtitle/services/subtitle_service.py
+
 import whisper
 import logging
 from pathlib import Path

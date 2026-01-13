@@ -26,9 +26,6 @@ class VideoProcessor:
     def temporary_files_context(self, *file_paths: Path):
         """
         Context manager to automatically clean up temporary files.
-        
-        Args:
-            *file_paths: Paths to temporary files
         """
         try:
             yield
@@ -41,18 +38,20 @@ class VideoProcessor:
         self,
         video_path: Path,
         model_name: str = Settings.DEFAULT_MODEL,
-        language: Optional[str] = None
-    ) -> Tuple[Path, Path]:
+        language: Optional[str] = None,
+        burn_subtitles: bool = True  # <--- NEW: Optional flag to skip burning
+    ) -> Tuple[Optional[Path], Path, str]:
         """
-        Process video: extract audio, generate subtitles, embed subtitles.
+        Process video: extract audio, generate subtitles, optionally embed subtitles.
         
         Args:
             video_path: Path to input video file
             model_name: Whisper model name
             language: Language code for transcription
+            burn_subtitles: If True, burns subtitles into video. If False, skips burning.
             
         Returns:
-            Tuple of (output_video_path, subtitle_file_path)
+            Tuple of (output_video_path [Optional], subtitle_file_path, full_text)
         """
         start_time = time.time()
         
@@ -81,17 +80,20 @@ class VideoProcessor:
                 audio_path, model_name, language
             )
             
-            # Step 3: Embed subtitles
-            # logger.info("Step 3: Embedding subtitles")
-            # output_path = self.ffmpeg_service.embed_subtitles(
-            #     video_path, srt_path, self.output_dir
-            # )
+            # Step 3: Embed subtitles (OPTIONAL)
+            if burn_subtitles:
+                logger.info("Step 3: Embedding subtitles")
+                output_path = self.ffmpeg_service.embed_subtitles(
+                    video_path, srt_path, self.output_dir
+                )
+            else:
+                logger.info("Skipping subtitle embedding (requested text/json only)")
+                output_path = None
             
             # Calculate processing time
             processing_time = time.time() - start_time
             
             logger.info(f"Processing completed in {processing_time:.1f} seconds")
-            # logger.info(f"Output video: {output_path}")
             logger.info(f"Subtitle file: {srt_path}")
             
             return output_path, srt_path, full_text

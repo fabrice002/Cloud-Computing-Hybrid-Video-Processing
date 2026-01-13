@@ -1,14 +1,12 @@
-#  app_subtitle/routes/subtitle_routes
-from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Form
+from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 import uuid
 from datetime import datetime
-
+from typing import Optional
 
 from utils.logging_config import logger
 from config.settings import Settings
-from models.response_models import ProcessingResult, ErrorResponse
 from services.video_processor import VideoProcessor
 from utils.file_utils import validate_file_extension, save_uploaded_file, cleanup_file
 
@@ -17,33 +15,27 @@ processor = VideoProcessor()
 
 @router.post("/generate-subtitles/")
 async def generate_subtitles(
+    background_tasks: BackgroundTasks,
     video: UploadFile = File(..., description="Video file to process"),
-    model_name: str = Settings.DEFAULT_MODEL,
-    language: str = None
+    model_name: str = Form(Settings.DEFAULT_MODEL),
+    language: Optional[str] = Form(None),
+    output_format: str = Form("video", description="Format: 'video' (burned) or 'json' (text only)")
 ):
     """
-    Generate and embed subtitles into a video file.
-    
-    Args:
-        video: Uploaded video file
-        model_name: Whisper model size (tiny, base, small, medium, large)
-        language: Optional language code for transcription
-        
-    Returns:
-        FileResponse with processed video and subtitle file
+    Generate subtitles. 
+    - output_format='video': Returns video with burned subtitles.
+    - output_format='json': Returns JSON with SRT content (for aggregation service).
     """
-    # Validate file extension
+    # 1. Validate file extension
     if not validate_file_extension(video.filename, Settings.ALLOWED_EXTENSIONS):
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported file format. Allowed: {', '.join(sorted(Settings.ALLOWED_EXTENSIONS))}"
         )
     
-    # Create unique filename
+    # 2. Setup paths
     unique_id = str(uuid.uuid4())[:8]
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # Save uploaded video
     video_filename = f"{timestamp}_{unique_id}_{Path(video.filename).name}"
     video_path = Settings.TEMP_DIR / video_filename
     
@@ -51,57 +43,67 @@ async def generate_subtitles(
         save_uploaded_file(video, video_path)
         logger.info(f"Video uploaded: {video_path}")
         
-        # Process video
+        # 3. Determine if we need to burn subtitles
+        # If the aggregator asks for JSON, we DON'T need to burn the video here.
+        should_burn = (output_format == "video")
+        
+        # 4. Process video
+        # NOTE: Ensure your VideoProcessor.process_video accepts the 'burn_subtitles' arg
         output_path, srt_path, full_text = processor.process_video(
-            video_path, model_name, language
+            video_path, model_name, language, burn_subtitles=should_burn
         )
         
-        # Clean up input video (keep subtitles and output)
-        cleanup_file(video_path)
-        
-        # Return both files
-        """ response = FileResponse(
-            path=srt_path,
-            media_type="video/mp4",
-            filename=f"subtitled_{Path(video.filename).name}"
-        ) """
-        
-        response = full_text
-        
-        # Add subtitle file as additional download header
-        # response.headers["X-Subtitle-File"] = srt_path.name
-        
-        return response
-        
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Processing failed: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to process video: {str(e)}"
-        )
+        # =========================================================
+        # OPTION A: RETURN JSON (Text Subtitles for Aggregator)
+        # =========================================================
+        if output_format == "json":
+            # Read the SRT file content into a string
+            srt_content = ""
+            if srt_path and srt_path.exists():
+                with open(srt_path, "r", encoding="utf-8") as f:
+                    srt_content = f.read()
+            
+            # Clean up all temp files immediately since we are done
+            cleanup_file(video_path)
+            cleanup_file(srt_path)
+            if output_path: cleanup_file(output_path)
+            
+            return JSONResponse(content={
+                "status": "success",
+                "filename": video.filename,
+                "srt_content": srt_content,  # <--- This is what the Aggregator needs
+                "full_text": full_text
+            })
 
+        # =========================================================
+        # OPTION B: RETURN VIDEO (Direct Download)
+        # =========================================================
+        elif output_path and output_path.exists():
+            # Schedule cleanup for after the file is sent
+            background_tasks.add_task(cleanup_file, video_path)
+            background_tasks.add_task(cleanup_file, srt_path)
+            # output_path is NOT cleaned immediately so user can download it.
+            # Ideally, have a cron job to clean output_dir periodically.
+            
+            return FileResponse(
+                path=output_path,
+                media_type="video/mp4",
+                filename=f"subtitled_{Path(video.filename).name}",
+                headers={"X-Subtitle-File": srt_path.name}
+            )
+            
+        else:
+            raise HTTPException(status_code=500, detail="Failed to generate output file")
+            
+    except Exception as e:
+        cleanup_file(video_path)
+        logger.error(f"Processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Keep the download route as is
 @router.get("/download-subtitles/{filename}")
 async def download_subtitles(filename: str):
-    """
-    Download subtitle file.
-    
-    Args:
-        filename: Name of subtitle file to download
-    """
     subtitle_path = Settings.OUTPUT_DIR / filename
-    
     if not subtitle_path.exists() or not subtitle_path.suffix == '.srt':
-        raise HTTPException(
-            status_code=404,
-            detail="Subtitle file not found"
-        )
-    
-    return FileResponse(
-        path=subtitle_path,
-        media_type="application/x-subrip",
-        filename=subtitle_path.name
-    )
+        raise HTTPException(status_code=404, detail="Subtitle file not found")
+    return FileResponse(path=subtitle_path, media_type="application/x-subrip", filename=subtitle_path.name)
