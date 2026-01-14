@@ -1,42 +1,44 @@
 # app_agregation/utils/file_utils.py
 
-"""File handling utilities."""
-
+"""
+Utility functions for file operations and video processing.
+"""
 
 import os
 import logging
+import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 logger = logging.getLogger(__name__)
 
 
-def cleanup_files(paths: List[Path]) -> None:
+def cleanup_files(file_paths: List[Path]) -> None:
     """
-    Safely remove temporary files.
+    Delete temporary files safely.
     
     Args:
-        paths: List of file paths to delete
+        file_paths: List of file paths to delete
     """
-    for path in paths:
-        if path and path.exists():
-            try:
-                os.remove(path)
-                logger.info(f"Cleaned up temporary file: {path.name}")
-            except OSError as e:
-                logger.warning(f"Failed to cleanup {path}: {e}")
+    for file_path in file_paths:
+        try:
+            if file_path.exists() and file_path.is_file():
+                file_path.unlink()
+                logger.info(f"Cleaned up file: {file_path}")
+        except Exception as e:
+            logger.warning(f"Failed to delete file {file_path}: {e}")
 
 
 def validate_file_size(file_path: Path, max_size: int) -> bool:
     """
-    Validate file size against maximum allowed.
+    Validate that a file does not exceed maximum size.
     
     Args:
-        file_path: Path to the file
+        file_path: Path to file
         max_size: Maximum allowed size in bytes
         
     Returns:
-        True if file is within size limit
+        True if file is within size limit, False otherwise
     """
     if not file_path.exists():
         return False
@@ -45,61 +47,81 @@ def validate_file_size(file_path: Path, max_size: int) -> bool:
     return file_size <= max_size
 
 
-def generate_safe_filename(base_name: str, extension: str) -> str:
+def get_video_info(video_path: Path) -> Dict[str, Optional[str]]:
     """
-    Generate a sanitized filename.
+    Extract video information using ffprobe.
     
     Args:
-        base_name: Base name for the file
-        extension: File extension (without dot)
+        video_path: Path to video file
         
     Returns:
-        Sanitized filename
+        Dictionary with duration and resolution
     """
-    # Remove unsafe characters
-    safe_name = "".join(c for c in base_name if c.isalnum() or c in ('-', '_'))
-    return f"{safe_name}.{extension}"
-
-def verify_srt_file(srt_path: Path) -> dict:
-    """
-    Thoroughly verify an SRT file.
-    
-    Returns:
-        Dictionary with verification results
-    """
-    result = {
-        'exists': False,
-        'size': 0,
-        'readable': False,
-        'has_content': False,
-        'has_timestamps': False,
-        'encoding': 'unknown',
-        'line_count': 0
+    info = {
+        "duration": None,
+        "resolution": None
     }
     
-    if not srt_path.exists():
-        return result
-    
-    result['exists'] = True
-    result['size'] = srt_path.stat().st_size
-    
     try:
-        with open(srt_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-            result['readable'] = True
-            result['has_content'] = len(content.strip()) > 0
-            result['has_timestamps'] = '-->' in content
-            result['line_count'] = len(content.split('\n'))
-            result['encoding'] = 'utf-8'
-    except UnicodeDecodeError:
-        try:
-            with open(srt_path, 'r', encoding='latin-1') as f:
-                content = f.read()
-                result['readable'] = True
-                result['encoding'] = 'latin-1'
-        except:
-            result['encoding'] = 'unknown/binary'
+        # Get duration
+        duration_cmd = [
+            "ffprobe",
+            "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            str(video_path)
+        ]
+        
+        duration_result = subprocess.run(
+            duration_cmd,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if duration_result.returncode == 0 and duration_result.stdout.strip():
+            info["duration"] = float(duration_result.stdout.strip())
+        
+        # Get resolution
+        resolution_cmd = [
+            "ffprobe",
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height",
+            "-of", "csv=s=x:p=0",
+            str(video_path)
+        ]
+        
+        resolution_result = subprocess.run(
+            resolution_cmd,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        
+        if resolution_result.returncode == 0 and resolution_result.stdout.strip():
+            info["resolution"] = resolution_result.stdout.strip()
+        
+        logger.info(f"Extracted video info: {info}")
+        
+    except subprocess.TimeoutExpired:
+        logger.error("ffprobe command timed out")
     except Exception as e:
-        result['error'] = str(e)
+        logger.error(f"Failed to extract video info: {e}")
     
-    return result
+    return info
+
+
+def validate_video_extension(filename: str, allowed_extensions: List[str]) -> bool:
+    """
+    Validate that a filename has an allowed extension.
+    
+    Args:
+        filename: Name of file to validate
+        allowed_extensions: List of allowed extensions (e.g., ['.mp4', '.avi'])
+        
+    Returns:
+        True if extension is allowed, False otherwise
+    """
+    file_ext = Path(filename).suffix.lower()
+    return file_ext in allowed_extensions

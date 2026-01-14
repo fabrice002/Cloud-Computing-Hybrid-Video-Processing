@@ -1,30 +1,77 @@
 # app_agregation/main.py
 
-"""Application entry point."""
+"""
+Main FastAPI application entry point.
 
-import uvicorn
+Initializes the FastAPI app, configures middleware, and sets up
+database connections and routing.
+"""
+
 import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from config.settings import settings
 from api.routes import router
-from utils.logging_config import setup_logging
+from services.mongodb_service import MongoDBService
 
-# Setup logging
-setup_logging(settings.LOG_LEVEL, settings.LOG_FILE)
+# Configure logging
+logging.basicConfig(
+    level=settings.LOG_LEVEL,
+    format=settings.LOG_FORMAT,
+    handlers=[
+        logging.StreamHandler(),
+        *([logging.FileHandler(settings.LOG_FILE)] if settings.LOG_FILE else [])
+    ]
+)
+
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager for startup and shutdown events.
+    """
+    # Startup
+    logger.info("Starting Video Aggregation Service...")
+    
+    # Connect to MongoDB
+    try:
+        await MongoDBService.connect()
+        logger.info("MongoDB connection established")
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        raise
+    
+    # Ensure storage directories exist
+    settings.VIDEO_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    settings.TEMP_DIR.mkdir(parents=True, exist_ok=True)
+    
+    logger.info(f"Video storage directory: {settings.VIDEO_STORAGE_DIR}")
+    logger.info(f"Temporary directory: {settings.TEMP_DIR}")
+    logger.info(f"Server starting on {settings.HOST}:{settings.PORT}")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down Video Aggregation Service...")
+    await MongoDBService.disconnect()
+    logger.info("MongoDB connection closed")
+
+
+# Initialize FastAPI application
 app = FastAPI(
     title=settings.API_TITLE,
     version=settings.API_VERSION,
     description=settings.API_DESCRIPTION,
-    debug=settings.DEBUG
+    lifespan=lifespan
 )
 
-# CORS middleware
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Configure appropriately for production
@@ -33,34 +80,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files (optional, for debugging)
-if settings.DEBUG:
-    app.mount("/downloads", StaticFiles(directory=settings.TEMP_DIR), name="downloads")
+# Mount static files for video storage (for direct access)
+app.mount(
+    "/video_storage",
+    StaticFiles(directory=str(settings.VIDEO_STORAGE_DIR)),
+    name="video_storage"
+)
 
-# Include routers
+# Include API routes
 app.include_router(router)
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Application startup tasks."""
-    logger.info(f"Starting {settings.API_TITLE} v{settings.API_VERSION}")
-    logger.info(f"Temp directory: {settings.TEMP_DIR}")
-    logger.info(f"Subtitle service: {settings.SUBTITLE_SERVICE_URL}")
-    logger.info(f"Compression service: {settings.COMPRESSION_SERVICE_URL}")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Application shutdown tasks."""
-    logger.info("Shutting down application")
+@app.get("/", tags=["Root"])
+async def root():
+    """Root endpoint providing service information."""
+    return {
+        "service": settings.API_TITLE,
+        "version": settings.API_VERSION,
+        "description": settings.API_DESCRIPTION,
+        "docs": "/docs",
+        "health": "/api/health"
+    }
 
 
 if __name__ == "__main__":
+    import uvicorn
+    
     uvicorn.run(
         "main:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
+        workers=settings.WORKERS,
         log_level=settings.LOG_LEVEL.lower()
     )

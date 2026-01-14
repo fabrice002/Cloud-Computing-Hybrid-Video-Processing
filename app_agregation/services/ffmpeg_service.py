@@ -1,65 +1,45 @@
-"""FFmpeg service for local video processing."""
+# app_agregation/services/ffmpeg_service.py
 
+"""
+FFmpeg service for local video processing.
+Handles video manipulation tasks including subtitle burning and metadata extraction.
+"""
+
+import asyncio
+import logging
+import json
 import subprocess
 import os
-import logging
+import shutil
+import tempfile
+import ctypes
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from config.settings import settings
 from utils.exceptions import FFmpegError
 
 logger = logging.getLogger(__name__)
 
-
 class FFmpegService:
-    """Handles FFmpeg operations for video processing."""
+    """
+    Handles FFmpeg operations for video processing.
+    """
 
     @staticmethod
-    def _get_ffmpeg_path(path: Path) -> str:
+    def _validate_srt_content(srt_path: str) -> None:
         """
-        Convert a Path object to an FFmpeg-friendly string for the subtitles filter.
-        
-        FFmpeg's complex filters (like subtitles=filename) require specific escaping:
-        1. Backslashes must be forward slashes.
-        2. Colons (like in C:/) must be escaped (C\:/).
-        3. The whole path should be quoted if it contains spaces.
-        """
-        # Convert to POSIX style (forward slashes)
-        p = path.as_posix()
-        
-        # Escape the colon (required for Windows drive letters in filters)
-        # e.g., "C:/Users" -> "C\:/Users"
-        p = p.replace(":", "\\:")
-        
-        # Wrap in single quotes to handle spaces in path safely
-        return f"'{p}'"
-
-    @staticmethod
-    def _validate_srt_content(srt_path: Path) -> None:
-        """
-        Check if the SRT file contains valid subtitle data before burning.
+        Check if the SRT file contains valid subtitle data.
         """
         try:
             with open(srt_path, 'r', encoding='utf-8', errors='ignore') as f:
-                # Read just the start of the file to check format
                 content = f.read(1024).strip()
             
             if not content:
-                raise FFmpegError(f"SRT file is empty: {srt_path.name}")
+                raise FFmpegError(f"SRT file is empty: {srt_path}")
 
-            # Check for JSON artifacts (if previous parsing failed silently)
             if content.startswith('{') and '"status":' in content:
                 raise FFmpegError("SRT file contains JSON data, not subtitle text.")
-            
-            # Check for HTML (Service Error Pages often return 200 OK with HTML)
-            if '<html' in content.lower() or '<!doctype' in content.lower():
-                raise FFmpegError("SRT file contains HTML (likely a service error page).")
-            
-            # Basic SRT validation: Should usually start with a number ('1')
-            lines = content.splitlines()
-            if lines and not lines[0].strip().isdigit():
-                 logger.warning(f"SRT file does not start with a number. Content preview: {lines[0]}")
 
         except FileNotFoundError:
             raise FFmpegError(f"SRT file missing during validation: {srt_path}")
@@ -69,82 +49,180 @@ class FFmpegService:
             logger.warning(f"Skipping strict SRT validation due to read error: {e}")
 
     @staticmethod
-    def burn_subtitles(
-        video_path: Path,
-        srt_path: Path,
-        output_path: Path,
+    def _get_windows_short_path(long_path: str) -> str:
+        """
+        Converts a Windows path with spaces to a DOS 8.3 short path.
+        Example: "D:/My Folder/File.txt" -> "D:/MYFOLD~1/File.txt"
+        This eliminates spaces, making the path safe for FFmpeg filters.
+        """
+        if os.name != 'nt':
+            return long_path
+
+        try:
+            # Prepare buffer for the short path
+            output_buf_size = ctypes.windll.kernel32.GetShortPathNameW(long_path, None, 0)
+            if output_buf_size == 0:
+                # If conversion fails, return original (might be already short or invalid)
+                return long_path
+                
+            output_buf = ctypes.create_unicode_buffer(output_buf_size)
+            ctypes.windll.kernel32.GetShortPathNameW(long_path, output_buf, output_buf_size)
+            return output_buf.value
+        except Exception as e:
+            logger.warning(f"Failed to convert to short path: {e}")
+            return long_path
+
+    @staticmethod
+    def _get_ffmpeg_safe_path(path: str) -> str:
+        """
+        Standardizes path for FFmpeg filters.
+        """
+        # 1. Get the 8.3 Short Path (Removes spaces/special chars)
+        safe_path = FFmpegService._get_windows_short_path(path)
+        
+        # 2. Normalize slashes (FFmpeg prefers forward slashes)
+        safe_path = safe_path.replace('\\', '/')
+        
+        # 3. Escape the drive letter colon (C: -> C\:)
+        # This is CRITICAL for the 'subtitles' filter
+        safe_path = safe_path.replace(':', '\\:')
+        
+        # 4. Escape single quotes just in case
+        safe_path = safe_path.replace("'", "'\\''")
+        
+        return safe_path
+
+    @staticmethod
+    def get_video_metadata(file_path: str) -> Dict[str, Any]:
+        """
+        Extracts metadata using ffprobe.
+        """
+        try:
+            cmd = [
+                'ffprobe',
+                '-v', 'quiet',
+                '-print_format', 'json',
+                '-show_format',
+                '-show_streams',
+                file_path
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            data = json.loads(result.stdout)
+            
+            format_info = data.get('format', {})
+            video_stream = next((s for s in data.get('streams', []) if s['codec_type'] == 'video'), {})
+            
+            return {
+                'duration': float(format_info.get('duration', 0)),
+                'size': int(format_info.get('size', 0)),
+                'resolution': f"{video_stream.get('width')}x{video_stream.get('height')}",
+                'codec': video_stream.get('codec_name')
+            }
+        except Exception as e:
+            logger.error(f"Metadata extraction failed: {str(e)}")
+            return {
+                "resolution": "unknown",
+                "duration": 0.0,
+                "size": 0,
+                "codec": "unknown"
+            }
+
+    @staticmethod
+    async def burn_subtitles(
+        video_path: str,
+        srt_path: str,
+        output_path: str,
+        resolution: str = "1280x720",
+        crf: int = 23,
         preset: Optional[str] = None
     ) -> None:
         """
         Burn subtitles into video using FFmpeg.
         
-        Args:
-            video_path: Path to input video
-            srt_path: Path to .srt file
-            output_path: Path where burned video will be saved
-            preset: FFmpeg compression preset (default: from settings)
+        Strategy: Use Windows Short Paths (8.3) to bypass space/character issues
+        and strictly escape the drive letter colon.
         """
-        if not video_path.exists():
-            raise FFmpegError(f"Video file not found: {video_path}")
+        # 1. Resolve Absolute Paths
+        abs_video_path = str(Path(video_path).resolve())
+        abs_srt_path = str(Path(srt_path).resolve())
+        abs_output_path = str(Path(output_path).resolve())
         
-        # 1. Validate Content
-        FFmpegService._validate_srt_content(srt_path)
+        if not os.path.exists(abs_video_path):
+            raise FFmpegError(f"Video file not found: {abs_video_path}")
         
-        preset = preset or settings.FFMPEG_PRESET
-        
-        # 2. Prepare Paths (Absolute & Escaped)
-        # We use absolute paths to avoid reliance on relative paths or CWD
-        input_file = str(video_path.absolute())
-        output_file = str(output_path.absolute())
-        
-        # Prepare the subtitle path specially for the filter
-        # e.g., D:/Temp/file.srt -> 'D\:/Temp/file.srt'
-        srt_filter_path = FFmpegService._get_ffmpeg_path(srt_path.absolute())
+        FFmpegService._validate_srt_content(abs_srt_path)
+
+        # 2. Create a Temp SRT (Just to be safe and clean)
+        temp_srt_fd, temp_srt_path = tempfile.mkstemp(suffix='.srt', text=True)
+        os.close(temp_srt_fd)
         
         try:
-            # 3. Construct Command
-            # -y: Overwrite output
-            # -vf subtitles=...: The filter that burns the text
-            # -c:a copy: Copy audio stream without re-encoding (faster)
-            command = [
-                "ffmpeg",
-                "-y",
-                "-i", input_file,
-                "-vf", f"subtitles={srt_filter_path}", 
-                "-c:v", settings.FFMPEG_CODEC,
-                "-preset", preset,
-                "-c:a", "copy",
-                output_file
-            ]
+            # Copy content to temp file
+            shutil.copy2(abs_srt_path, temp_srt_path)
             
-            logger.info(f"Starting FFmpeg burn for: {video_path.name}")
-            logger.debug(f"FFmpeg Command: {command}")
+            # 3. Get the "Safe" path (Short path + Escaped Colon)
+            # This turns "D:\M2 DS\temp.srt" into "D\:/M2DS~1/temp.srt"
+            filter_srt_path = FFmpegService._get_ffmpeg_safe_path(temp_srt_path)
+
+            preset = preset or settings.FFMPEG_PRESET
+            codec = settings.FFMPEG_CODEC
+
+            vf_filter = (
+                f"subtitles='{filter_srt_path}':force_style='Fontsize=24,PrimaryColour=&H00FFFFFF,BackColour=&H80000000,BorderStyle=3',"
+                f"scale={resolution}"
+            )
+
+            cmd = [
+                'ffmpeg',
+                '-y',
+                '-i', abs_video_path,
+                '-vf', vf_filter,
+                '-c:v', codec,
+                '-crf', str(crf),
+                '-preset', preset,
+                '-c:a', 'aac',
+                '-b:a', '128k',
+                abs_output_path
+            ]
+
+            logger.info(f"Starting FFmpeg burn: {os.path.basename(abs_video_path)}")
+            logger.debug(f"Subtitle Filter Path: {filter_srt_path}")
 
             # 4. Execute
-            result = subprocess.run(
-                command,
-                capture_output=True,
-                text=True,
-                timeout=300, # 5 minute timeout for burning
-                encoding='utf-8',
-                errors='replace'
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
+
+            stdout, stderr = await process.communicate()
             
-            if result.returncode != 0:
-                logger.error(f"FFmpeg Exit Code: {result.returncode}")
-                # Log the last 20 lines of stderr for context
-                tail_log = '\n'.join(result.stderr.splitlines()[-20:])
+            if process.returncode != 0:
+                logger.error(f"FFmpeg Exit Code: {process.returncode}")
+                error_log = stderr.decode('utf-8', errors='replace')
+                tail_log = '\n'.join(error_log.splitlines()[-20:])
                 logger.error(f"FFmpeg Log Tail:\n{tail_log}")
                 raise FFmpegError(f"FFmpeg processing failed: {tail_log}")
                 
-            if not output_path.exists():
+            if not os.path.exists(abs_output_path):
                 raise FFmpegError("Output file missing after FFmpeg run")
                 
-            logger.info(f"Successfully burned subtitles: {output_path.name}")
+            logger.info(f"Successfully burned subtitles: {os.path.basename(abs_output_path)}")
 
-        except subprocess.TimeoutExpired:
-            raise FFmpegError("FFmpeg process timed out (limit: 300s)")
         except Exception as e:
             if isinstance(e, FFmpegError):
                 raise
+            logger.error(f"FFmpeg execution failed: {str(e)}")
             raise FFmpegError(f"FFmpeg execution failed: {str(e)}")
+        
+        finally:
+            # 5. Clean up temp SRT
+            if os.path.exists(temp_srt_path):
+                try:
+                    os.remove(temp_srt_path)
+                except OSError:
+                    pass
+
+    # Alias for compatibility
+    embed_subtitles = burn_subtitles
