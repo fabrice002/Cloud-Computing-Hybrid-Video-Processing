@@ -267,7 +267,12 @@ async def get_video_metadata(video_id: str) -> dict:
 @router.get("/videos/")
 async def list_videos(status: Optional[VideoStatus] = None, limit: int = 100) -> dict:
     videos = await MongoDBService.list_videos(status=status, limit=limit)
-    return {"total": len(videos), "videos": [video.model_dump(by_alias=True, exclude={"id"}) for video in videos]}
+    # Remove the exclude parameter. 
+    # Ensure your Pydantic model has an 'id' or '_id' field mapped correctly.
+    return {
+        "total": len(videos), 
+        "videos": [video.model_dump(by_alias=True) for video in videos]
+    }
 
 @router.delete("/videos/{video_id}")
 async def delete_video(video_id: str, background_tasks: BackgroundTasks) -> dict:
